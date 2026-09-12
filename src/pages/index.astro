@@ -1,17 +1,580 @@
 ---
+import { getCollection } from "astro:content";
 
+const articles = (await getCollection("articles")).sort(
+  (a, b) => a.data.number - b.data.number
+);
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro</title>
-	</head>
-	<body>
-		<h1>Astro</h1>
-	</body>
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+      <title>La Deriva — Domenico Toscano</title>
+
+<meta
+  name="description"
+  content="Poesie, racconti, recensioni e riflessioni di Domenico Toscano."
+/>
+
+<link rel="canonical" href="https://la-deriva.domenicotoscano-site.workers.dev/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="La Deriva — Domenico Toscano" />
+<meta
+  property="og:description"
+  content="Poesie, racconti, recensioni e riflessioni di Domenico Toscano."
+/>
+<meta
+  property="og:url"
+  content="https://la-deriva.domenicotoscano-site.workers.dev/"
+/>
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="La Deriva — Domenico Toscano" />
+<meta
+  name="twitter:description"
+  content="Poesie, racconti, recensioni e riflessioni di Domenico Toscano."
+/>
+  </head>
+
+  <body>
+    <header class="site-header">
+      <a href="/" class="logo" aria-label="La Deriva, home">
+        <span class="wave" aria-hidden="true">〰</span>
+        <span>La Deriva</span>
+      </a>
+
+      <nav>
+        <a href="#indice">Indice</a>
+        <button id="search-toggle" type="button">Cerca</button>
+        <a href="#chi-sono">Chi sono</a>
+      </nav>
+    </header>
+
+    <div class="search-panel" id="search-panel" aria-hidden="true">
+      <div class="search-inner">
+        <label for="search-input">Cerca negli articoli</label>
+
+        <div class="search-field">
+          <input
+            id="search-input"
+            type="search"
+            placeholder="Scrivi per cercare..."
+            autocomplete="off"
+          />
+          <button id="search-close" type="button" aria-label="Chiudi ricerca">
+            ×
+          </button>
+        </div>
+
+        <p class="search-count" id="search-count"></p>
+      </div>
+    </div>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">Domenico Toscano</p>
+
+        <h1>
+          Poesie, racconti,<br />
+          recensioni e riflessioni.
+        </h1>
+
+        <p class="intro-text">
+          Pensieri che arrivano come un lampo e che, se non li appunti subito,
+          se ne vanno per sempre.
+        </p>
+      </section>
+
+      <section class="index" id="indice">
+        <div class="section-heading">
+          <span>Indice</span>
+          <span>{articles.length.toString().padStart(2, "0")}</span>
+        </div>
+
+        <div class="articles" id="articles">
+          {
+            articles.map((article) => (
+              <article
+                class="article"
+                data-search={`${article.data.title} ${article.data.subtitle ?? ""} ${article.data.description}`}
+              >
+                <div class="article-number">
+                  {article.data.number.toString().padStart(2, "0")}
+                </div>
+
+                <div class="article-content">
+  <h2>
+    <a href={`/${article.data.number}`}>
+      {article.data.title}
+    </a>
+  </h2>
+
+  {article.data.subtitle && (
+    <p class="subtitle">{article.data.subtitle}</p>
+  )}
+
+  <div class="article-meta">
+    {article.data.date.toLocaleDateString("it-IT", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })}
+  </div>
+
+  <p class="excerpt">{article.data.description}</p>
+</div>
+
+<div class="arrow">↗</div>
+              </article>
+            ))
+          }
+        </div>
+
+        <p class="no-results" id="no-results">
+          Nessun articolo trovato.
+        </p>
+      </section>
+
+      <section class="about" id="chi-sono">
+        <div class="section-heading">
+          <span>Chi sono</span>
+        </div>
+
+        <p>
+          Sono Domenico. Scrivo di libri, persone, lavoro, tecnologia e di
+          quelle cose che continuano a tornare in testa anche quando sarebbe
+          più semplice lasciarle andare.
+        </p>
+      </section>
+    </main>
+
+    <footer>
+      <span>La Deriva</span>
+      <span>© {new Date().getFullYear()} Domenico Toscano</span>
+    </footer>
+  </body>
 </html>
+
+<script>
+  const searchToggle = document.querySelector("#search-toggle");
+  const searchPanel = document.querySelector("#search-panel");
+  const searchInput = document.querySelector("#search-input");
+  const searchClose = document.querySelector("#search-close");
+  const searchCount = document.querySelector("#search-count");
+  const noResults = document.querySelector("#no-results");
+  const articles = Array.from(document.querySelectorAll(".article"));
+
+  searchToggle?.addEventListener("click", () => {
+    searchPanel?.classList.add("open");
+    searchPanel?.setAttribute("aria-hidden", "false");
+
+    setTimeout(() => searchInput?.focus(), 50);
+  });
+
+  searchClose?.addEventListener("click", () => {
+    searchPanel?.classList.remove("open");
+    searchPanel?.setAttribute("aria-hidden", "true");
+
+    if (searchInput instanceof HTMLInputElement) {
+      searchInput.value = "";
+    }
+
+    articles.forEach((article) => article.classList.remove("hidden"));
+    noResults?.classList.remove("visible");
+
+    if (searchCount) searchCount.textContent = "";
+  });
+
+  searchInput?.addEventListener("input", () => {
+    const query = searchInput.value.trim().toLowerCase();
+
+    let visible = 0;
+
+    articles.forEach((article) => {
+      const text = article.dataset.search?.toLowerCase() ?? "";
+      const match = !query || text.includes(query);
+
+      article.classList.toggle("hidden", !match);
+
+      if (match) visible++;
+    });
+
+    if (searchCount) {
+      searchCount.textContent = query
+        ? `${visible} ${visible === 1 ? "articolo trovato" : "articoli trovati"}`
+        : "";
+    }
+
+    noResults?.classList.toggle("visible", query !== "" && visible === 0);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      searchClose?.click();
+    }
+  });
+</script>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(html) {
+    scroll-behavior: smooth;
+  }
+
+  :global(body) {
+    margin: 0;
+    background: #f8f8f5;
+    color: #17191c;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  :global(a) {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .site-header {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 30px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #d9d9d4;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+  }
+
+  .wave {
+    color: #2678a5;
+    font-size: 25px;
+    line-height: 1;
+    transform: rotate(-8deg);
+  }
+
+  nav {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    font-size: 14px;
+    color: #686b70;
+  }
+
+  nav a:hover,
+  nav button:hover {
+    color: #2678a5;
+  }
+
+  nav button {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .search-panel {
+    max-height: 0;
+    overflow: hidden;
+    border-bottom: 0 solid #d9d9d4;
+    transition:
+      max-height 0.25s ease,
+      border-bottom-width 0.25s ease;
+  }
+
+  .search-panel.open {
+    max-height: 220px;
+    border-bottom-width: 1px;
+  }
+
+  .search-inner {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 25px 0 30px;
+  }
+
+  .search-inner label {
+    display: block;
+    margin-bottom: 10px;
+    color: #686b70;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .search-field {
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid #17191c;
+  }
+
+  .search-field input {
+    width: 100%;
+    border: 0;
+    outline: 0;
+    padding: 8px 0 12px;
+    background: transparent;
+    color: #17191c;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 28px;
+  }
+
+  .search-field input::placeholder {
+    color: #a0a2a5;
+  }
+
+  .search-field button {
+    border: 0;
+    background: transparent;
+    color: #686b70;
+    font-size: 27px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .search-count {
+    margin: 10px 0 0;
+    color: #777b80;
+    font-size: 12px;
+  }
+
+  main {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+  }
+
+  .intro {
+    max-width: 760px;
+    padding: 110px 0 125px;
+  }
+
+  .eyebrow {
+    margin: 0 0 25px;
+    color: #2678a5;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  h1 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(44px, 6vw, 78px);
+    line-height: 0.98;
+    font-weight: 400;
+    letter-spacing: -0.055em;
+  }
+
+  .intro-text {
+    max-width: 540px;
+    margin: 35px 0 0;
+    color: #686b70;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 19px;
+    line-height: 1.6;
+  }
+
+  .section-heading {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0 17px;
+    border-bottom: 2px solid #17191c;
+    color: #686b70;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .articles {
+    border-bottom: 1px solid #d9d9d4;
+  }
+
+  .article {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr) 35px;
+    gap: 20px;
+    padding: 43px 0 48px;
+    border-bottom: 1px solid #d9d9d4;
+  }
+
+  .article:last-child {
+    border-bottom: 0;
+  }
+
+  .article.hidden {
+    display: none;
+  }
+
+  .article-number {
+    color: #2678a5;
+    font-size: 13px;
+    font-weight: 600;
+    padding-top: 6px;
+  }
+
+  .article-content {
+    max-width: 760px;
+  }
+
+.article-content h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.article-content h2 a:hover {
+  color: #1677b8;
+}
+
+  h2 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(28px, 4vw, 48px);
+    line-height: 1.03;
+    font-weight: 400;
+    letter-spacing: -0.045em;
+  }
+
+  .subtitle {
+    max-width: 650px;
+    margin: 13px 0 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 20px;
+    line-height: 1.4;
+    color: #4e5257;
+  }
+
+  .article-meta {
+    margin-top: 19px;
+    color: #777b80;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .excerpt {
+    max-width: 650px;
+    margin: 23px 0 0;
+    color: #5d6268;
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .arrow {
+    padding-top: 4px;
+    color: #2678a5;
+    font-size: 22px;
+    text-align: right;
+  }
+
+  .no-results {
+    display: none;
+    margin: 30px 0 0;
+    color: #777b80;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 20px;
+  }
+
+  .no-results.visible {
+    display: block;
+  }
+
+  .about {
+    max-width: 760px;
+    padding: 110px 0;
+  }
+
+  .about p {
+    margin: 30px 0 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 26px;
+    line-height: 1.45;
+    letter-spacing: -0.02em;
+  }
+
+  footer {
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 30px 0 45px;
+    border-top: 1px solid #d9d9d4;
+    display: flex;
+    justify-content: space-between;
+    color: #777b80;
+    font-size: 12px;
+  }
+
+  @media (max-width: 700px) {
+    .site-header,
+    main,
+    footer,
+    .search-inner {
+      width: min(100% - 32px, 1180px);
+    }
+
+    .site-header {
+      padding: 22px 0;
+    }
+
+    nav {
+      gap: 15px;
+    }
+
+    .intro {
+      padding: 75px 0 85px;
+    }
+
+    h1 {
+      font-size: 48px;
+    }
+
+    .article {
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      padding: 35px 0 40px;
+    }
+
+    .arrow {
+      display: none;
+    }
+
+    h2 {
+      font-size: 34px;
+    }
+
+    .subtitle {
+      font-size: 18px;
+    }
+
+    .search-field input {
+      font-size: 23px;
+    }
+
+    .about {
+      padding: 80px 0;
+    }
+
+    .about p {
+      font-size: 22px;
+    }
+
+    footer {
+      flex-direction: column;
+      gap: 10px;
+    }
+  }
+</style>

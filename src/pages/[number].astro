@@ -1,0 +1,319 @@
+---
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const articles = await getCollection("articles");
+
+  return articles.map((article) => ({
+    params: {
+      number: String(article.data.number),
+    },
+    props: {
+      article,
+    },
+  }));
+}
+
+const { article } = Astro.props;
+const { Content } = await render(article);
+
+const articles = (await getCollection("articles")).sort(
+  (a, b) => a.data.number - b.data.number
+);
+
+const currentIndex = articles.findIndex(
+  (item) => item.data.number === article.data.number
+);
+
+const previous = articles[currentIndex - 1];
+const next = articles[currentIndex + 1];
+---
+
+<!doctype html>
+<html lang="it">
+  <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+
+  <title>{article.data.title} — La Deriva</title>
+
+  <meta name="description" content={article.data.description} />
+
+  <link
+    rel="canonical"
+    href={`https://la-deriva.domenicotoscano-site.workers.dev/${article.data.number}`}
+  />
+
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content={`${article.data.title} — La Deriva`} />
+  <meta property="og:description" content={article.data.description} />
+  <meta
+    property="og:url"
+    content={`https://la-deriva.domenicotoscano-site.workers.dev/${article.data.number}`}
+  />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content={`${article.data.title} — La Deriva`} />
+  <meta name="twitter:description" content={article.data.description} />
+</head>
+
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">
+        <span class="mark">〰</span>
+        <span>La Deriva</span>
+      </a>
+
+      <nav>
+        <a href="/">Indice</a>
+        <a href="/#chi-sono">Chi sono</a>
+      </nav>
+    </header>
+
+    <main>
+      <article>
+        <div class="article-number">
+  {article.data.number.toString().padStart(2, "0")} / LA DERIVA
+</div>
+
+        <h1>{article.data.title}</h1>
+
+        {
+          article.data.subtitle && (
+            <p class="subtitle">{article.data.subtitle}</p>
+          )
+        }
+
+        <div class="date">
+          {article.data.date.toLocaleDateString("it-IT", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+          })}
+        </div>
+
+        <div class="content">
+          <Content />
+        </div>
+      </article>
+
+      <nav class="article-navigation" aria-label="Navigazione articoli">
+        {
+          previous ? (
+            <a href={`/${previous.data.number}`}>
+              <span>← Precedente</span>
+              <strong>{previous.data.title}</strong>
+            </a>
+          ) : (
+            <span></span>
+          )
+        }
+
+        {
+          next && (
+            <a class="next" href={`/${next.data.number}`}>
+              <span>Successivo →</span>
+              <strong>{next.data.title}</strong>
+            </a>
+          )
+        }
+      </nav>
+    </main>
+
+    <footer>
+      <a href="/">La Deriva</a>
+    </footer>
+  </body>
+</html>
+
+<style>
+  :global(*) {
+    box-sizing: border-box;
+  }
+
+  :global(body) {
+    margin: 0;
+    background: #f7f4ed;
+    color: #171717;
+    font-family: Georgia, "Times New Roman", serif;
+  }
+
+  .site-header {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 28px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: Arial, sans-serif;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: inherit;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .mark {
+    color: #1677b8;
+    font-size: 26px;
+    line-height: 1;
+  }
+
+  nav {
+    display: flex;
+    gap: 22px;
+  }
+
+  nav a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  nav a:hover {
+    color: #1677b8;
+  }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 80px 24px 100px;
+  }
+
+  article {
+    border-top: 1px solid #cfcac0;
+    padding-top: 28px;
+  }
+
+  .article-number {
+    font-family: Arial, sans-serif;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #1677b8;
+    margin-bottom: 24px;
+  }
+
+  h1 {
+  margin: 0;
+  max-width: 700px;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  line-height: 1.06;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+  .subtitle {
+    margin: 24px 0 0;
+    font-size: 1.3rem;
+    line-height: 1.5;
+    color: #555;
+  }
+
+  .date {
+    margin-top: 24px;
+    font-family: Arial, sans-serif;
+    font-size: 0.82rem;
+    color: #777;
+  }
+
+  .content {
+  max-width: 680px;
+  margin-top: 64px;
+  font-size: 1.12rem;
+  line-height: 1.85;
+}
+
+  .content :global(h2) {
+    font-size: 1.8rem;
+    line-height: 1.2;
+    margin-top: 2.5em;
+  }
+
+  .content :global(p) {
+    margin: 1.4em 0;
+  }
+
+  .content :global(a) {
+    color: #1677b8;
+  }
+
+  .article-navigation {
+  max-width: 680px;
+  margin: 110px auto 0;
+    padding-top: 24px;
+    border-top: 1px solid #cfcac0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    font-family: Arial, sans-serif;
+  }
+
+  .article-navigation a {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .article-navigation a:hover strong {
+    color: #1677b8;
+  }
+
+  .article-navigation span {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #777;
+  }
+
+  .article-navigation strong {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.05rem;
+    font-weight: 400;
+  }
+
+  .next {
+    text-align: right;
+  }
+
+  footer {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 30px 24px 50px;
+    border-top: 1px solid #cfcac0;
+    font-family: Arial, sans-serif;
+  }
+
+  footer a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  @media (max-width: 700px) {
+    .site-header {
+      padding: 22px 18px;
+    }
+
+    .site-header nav {
+      gap: 14px;
+      font-size: 0.9rem;
+    }
+
+    main {
+      padding: 50px 18px 70px;
+    }
+
+    .article-navigation {
+      grid-template-columns: 1fr;
+    }
+
+    .next {
+      text-align: left;
+    }
+  }
+</style>
