@@ -13,6 +13,10 @@ const articles = defineCollection({
     subtitle: z.string().optional(),
     date: z.coerce.date(),
     description: z.string(),
+
+    formats: z
+      .array(z.enum(["video", "podcast"]))
+      .default([]),
   }),
 });
 

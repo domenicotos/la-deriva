@@ -94,43 +94,99 @@ const articles = (await getCollection("articles")).sort(
         </div>
 
         <div class="articles" id="articles">
-          {
-            articles.map((article) => (
-              <article
-                class="article"
-                data-search={`${article.data.title} ${article.data.subtitle ?? ""} ${article.data.description}`}
-              >
-                <div class="article-number">
-                  {article.data.number.toString().padStart(2, "0")}
-                </div>
-
-                <div class="article-content">
-  <h2>
-    <a href={`/${article.data.number}`}>
-      {article.data.title}
-    </a>
-  </h2>
-
-  {article.data.subtitle && (
-    <p class="subtitle">{article.data.subtitle}</p>
-  )}
-
-  <div class="article-meta">
-    {article.data.date.toLocaleDateString("it-IT", {
-      day: "2-digit",
-      month: "long",
-      year: "numeric",
-    })}
-  </div>
-
-  <p class="excerpt">{article.data.description}</p>
-</div>
-
-<div class="arrow">↗</div>
-              </article>
-            ))
-          }
+  {
+    articles.map((article) => (
+      <article
+        class="article"
+        data-search={`${article.data.title} ${article.data.subtitle ?? ""} ${article.data.description}`}
+      >
+        <div class="article-number">
+          {article.data.number.toString().padStart(2, "0")}
         </div>
+
+        <div class="article-content">
+          <h2>
+            <a href={`/${article.data.number}`}>
+              {article.data.title}
+            </a>
+          </h2>
+
+          {article.data.subtitle && (
+            <p class="subtitle">{article.data.subtitle}</p>
+          )}
+
+          <div class="article-meta">
+            {article.data.date.toLocaleDateString("it-IT", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+            })}
+          </div>
+
+          <div class="article-formats" aria-label="Formati disponibili">
+            {article.data.formats.includes("video") && (
+              <svg
+                class="format-icon"
+                viewBox="0 0 24 24"
+                aria-label="Video"
+                role="img"
+              >
+                <rect
+                  x="3"
+                  y="5"
+                  width="13"
+                  height="14"
+                  rx="2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M16 10l5-3v10l-5-3z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            )}
+
+            {article.data.formats.includes("podcast") && (
+              <svg
+                class="format-icon"
+                viewBox="0 0 24 24"
+                aria-label="Podcast"
+                role="img"
+              >
+                <rect
+                  x="9"
+                  y="3"
+                  width="6"
+                  height="11"
+                  rx="3"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            )}
+          </div>
+
+          <p class="excerpt">{article.data.description}</p>
+        </div>
+
+        <div class="arrow">↗</div>
+      </article>
+    ))
+  }
+</div>
 
         <p class="no-results" id="no-results">
           Nessun articolo trovato.
@@ -465,6 +521,20 @@ const articles = (await getCollection("articles")).sort(
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
+
+  .article-formats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.format-icon {
+  width: 18px;
+  height: 18px;
+  color: #1677b8;
+  flex-shrink: 0;
+}
 
   .excerpt {
     max-width: 650px;

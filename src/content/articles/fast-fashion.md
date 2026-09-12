@@ -4,6 +4,7 @@ title: "Fast Fashion: la piaga della moda"
 subtitle: "Come acquistiamo, cosa compriamo e cosa si nasconde dietro i vestiti a basso costo"
 date: 2026-09-12
 description: "Il fast fashion è ormai parte integrante del nostro modo di acquistare vestiti. Ma cosa si nasconde davvero dietro quei prezzi così bassi?"
+formats: []
 ---
 
 # Fast Fashion: la piaga della moda
