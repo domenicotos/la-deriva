@@ -1,5 +1,5 @@
 ---
-number: 5
+number: 6
 title: "Il tuo manager conosce il (tuo) lavoro meno di te"
 subtitle: ""
 date: 2026-09-11
