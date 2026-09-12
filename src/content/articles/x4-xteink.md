@@ -4,6 +4,10 @@ title: "X4 X-Teink, molto più che tascabile"
 subtitle: "Piccolo, minimale e diverso dai Kindle e Kobo a cui siamo abituati"
 date: 2026-09-12
 description: "La mia esperienza con X4 di Xteink, un piccolo e-reader pensato per avere sempre con sé centinaia di libri, poesie e saggi."
+type: recensione
+formats: 
+    - video
+    - podcast
 ---
 
 # X4: l'e-reader che mi sono portato in tasca

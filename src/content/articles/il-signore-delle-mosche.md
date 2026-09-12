@@ -4,6 +4,7 @@ title: "Il Signore delle Mosche: quando le aspettative pesano più del libro"
 subtitle: "La mia esperienza con il romanzo di William Golding"
 date: 2026-09-12
 description: "La mia esperienza con Il Signore delle Mosche di William Golding: un libro importante che, nonostante le aspettative, non è riuscito a conquistarmi."
+type: recensione
 ---
 
 Ci sono libri che inizi a leggere senza aspettarti niente di particolare. Poi ce ne sono altri che inizi con delle aspettative già altissime, perché per anni ti è stato detto quanto siano importanti, quanto siano belli, quanto siano dei capolavori.

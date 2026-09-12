@@ -14,9 +14,19 @@ const articles = defineCollection({
     date: z.coerce.date(),
     description: z.string(),
 
-    formats: z
-      .array(z.enum(["video", "podcast"]))
-      .default([]),
+type: z
+  .enum([
+    "articolo",
+    "poesia",
+    "racconto",
+    "frammento",
+    "recensione",
+  ])
+  .default("articolo"),
+
+formats: z
+  .array(z.enum(["video", "podcast"]))
+  .default([]),
   }),
 });
 

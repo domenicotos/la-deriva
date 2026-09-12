@@ -4,6 +4,7 @@ title: "Feed M.T. Anderson"
 subtitle: "La mia opinione dopo averlo letto."
 date: 2026-09-11
 description: "La recensione di Feed, il romanzo."
+type: recensione
 ---
 
 ![feed-copertina](https://res.cloudinary.com/lruzihj7/image/upload/v1789200935/6395e822-2a0e-4fab-a18e-42177fdee5a5_1536x1024.jpg)

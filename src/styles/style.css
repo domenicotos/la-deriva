@@ -1,0 +1,297 @@
+/* =========================
+   BASE
+   ========================= */
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;500;600;700&display=swap");
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #f8f8f5;
+  color: #17191c;
+  font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:visited {
+  color: inherit;
+}
+
+
+/* =========================
+   HEADER
+   ========================= */
+
+.site-header {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 30px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.wave {
+  color: #2678a5;
+  font-size: 25px;
+  line-height: 1;
+  transform: rotate(-8deg);
+}
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  font-size: 14px;
+  color: #686b70;
+}
+
+.site-header nav a:hover,
+.site-header nav button:hover {
+  color: #2678a5;
+}
+
+.site-header nav button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+
+/* =========================
+   SEARCH
+   ========================= */
+
+.search-panel {
+  max-height: 0;
+  overflow: hidden;
+  border-bottom: 0 solid #d9d9d4;
+  transition:
+    max-height 0.25s ease,
+    border-bottom-width 0.25s ease;
+}
+
+.search-panel.open {
+  max-height: 220px;
+  border-bottom-width: 1px;
+}
+
+.search-inner {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 25px 0 30px;
+}
+
+.search-inner label {
+  display: block;
+  margin-bottom: 10px;
+  color: #686b70;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid #17191c;
+}
+
+.search-field input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  padding: 8px 0 12px;
+  background: transparent;
+  color: #17191c;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 28px;
+}
+
+.search-field input::placeholder {
+  color: #a0a2a5;
+}
+
+.search-field button {
+  border: 0;
+  background: transparent;
+  color: #686b70;
+  font-size: 27px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.search-count {
+  margin: 10px 0 0;
+  color: #777b80;
+  font-size: 12px;
+}
+
+.search-results {
+  max-height: 360px;
+  overflow-y: auto;
+  margin-top: 18px;
+  border-top: 1px solid #d9d9d4;
+}
+
+.search-result {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 0;
+  border-bottom: 1px solid #d9d9d4;
+}
+
+.search-result:hover {
+  color: #2678a5;
+}
+
+.search-result-number {
+  color: #2678a5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.search-result-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+}
+
+.search-result-meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+  color: #2678a5;
+}
+
+.search-result-type {
+  margin-left: 3px;
+  color: #686b70;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.search-format-icon {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.search-no-results {
+  padding: 18px 0;
+  color: #777b80;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 17px;
+}
+
+
+/* =========================
+   ARTICLE TYPE
+   ========================= */
+
+.article-type {
+  display: inline-block;
+  margin-top: 8px;
+  color: #2678a5;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+
+/* =========================
+   FORMAT ICONS
+   ========================= */
+
+.article-formats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.format-icon {
+  width: 18px;
+  height: 18px;
+  color: #2678a5;
+  flex-shrink: 0;
+}
+
+
+/* =========================
+   FOOTER
+   ========================= */
+
+footer {
+  width: min(1180px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 30px 0 45px;
+  border-top: 1px solid #d9d9d4;
+  display: flex;
+  justify-content: space-between;
+  color: #777b80;
+  font-size: 12px;
+}
+
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 700px) {
+  .site-header,
+  .search-inner,
+  footer {
+    width: min(100% - 32px, 1180px);
+  }
+
+  .site-header {
+    padding: 22px 0;
+  }
+
+  .site-header nav {
+    gap: 15px;
+  }
+
+  .search-field input {
+    font-size: 23px;
+  }
+
+  footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

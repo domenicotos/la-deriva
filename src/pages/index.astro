@@ -1,11 +1,15 @@
 ---
+import "../styles/style.css";
 import { getCollection } from "astro:content";
+import { getSearchArticles } from "../data/search";
 
 const articles = (await getCollection("articles")).sort(
   (a, b) => b.data.number - a.data.number
 );
----
 
+const searchArticles = await getSearchArticles();
+console.log(searchArticles);
+---
 <!doctype html>
 <html lang="it">
   <head>
@@ -53,24 +57,26 @@ const articles = (await getCollection("articles")).sort(
     </header>
 
     <div class="search-panel" id="search-panel" aria-hidden="true">
-      <div class="search-inner">
-        <label for="search-input">Cerca negli articoli</label>
+  <div class="search-inner">
+    <label for="search-input">Cerca negli articoli</label>
 
-        <div class="search-field">
-          <input
-            id="search-input"
-            type="search"
-            placeholder="Scrivi per cercare..."
-            autocomplete="off"
-          />
-          <button id="search-close" type="button" aria-label="Chiudi ricerca">
-            ×
-          </button>
-        </div>
+    <div class="search-field">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Scrivi per cercare..."
+        autocomplete="off"
+      />
 
-        <p class="search-count" id="search-count"></p>
-      </div>
+      <button id="search-close" type="button" aria-label="Chiudi ricerca">
+        ×
+      </button>
     </div>
+
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+<script type="application/json" id="search-data" set:html={JSON.stringify(searchArticles)}></script>
 
     <main>
       <section class="intro">
@@ -116,12 +122,17 @@ const articles = (await getCollection("articles")).sort(
           )}
 
           <div class="article-meta">
-            {article.data.date.toLocaleDateString("it-IT", {
-              day: "2-digit",
-              month: "long",
-              year: "numeric",
-            })}
-          </div>
+  {article.data.date.toLocaleDateString("it-IT", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  })}
+</div>
+{article.data.type !== "articolo" && (
+  <div class="article-type">
+    {article.data.type}
+  </div>
+)}
 
           <div class="article-formats" aria-label="Formati disponibili">
             {article.data.formats.includes("video") && (
@@ -211,201 +222,173 @@ const articles = (await getCollection("articles")).sort(
   </body>
 </html>
 
-<script>
-  const searchToggle = document.querySelector("#search-toggle");
-  const searchPanel = document.querySelector("#search-panel");
-  const searchInput = document.querySelector("#search-input");
-  const searchClose = document.querySelector("#search-close");
-  const searchCount = document.querySelector("#search-count");
-  const noResults = document.querySelector("#no-results");
-  const articles = Array.from(document.querySelectorAll(".article"));
+ <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchToggle = document.querySelector("#search-toggle");
+    const searchPanel = document.querySelector("#search-panel");
+    const searchInput = document.querySelector("#search-input");
+    const searchClose = document.querySelector("#search-close");
+    const searchResults = document.querySelector("#search-results");
+    const searchData = document.querySelector("#search-data");
 
-  searchToggle?.addEventListener("click", () => {
-    searchPanel?.classList.add("open");
-    searchPanel?.setAttribute("aria-hidden", "false");
+    let articles = [];
 
-    setTimeout(() => searchInput?.focus(), 50);
-  });
-
-  searchClose?.addEventListener("click", () => {
-    searchPanel?.classList.remove("open");
-    searchPanel?.setAttribute("aria-hidden", "true");
-
-    if (searchInput instanceof HTMLInputElement) {
-      searchInput.value = "";
+    if (searchData) {
+      try {
+        articles = JSON.parse(searchData.textContent || "[]");
+      } catch (error) {
+        console.error("Errore nei dati della ricerca:", error);
+      }
     }
 
-    articles.forEach((article) => article.classList.remove("hidden"));
-    noResults?.classList.remove("visible");
+    function renderResults(query) {
+      if (!searchResults) return;
 
-    if (searchCount) searchCount.textContent = "";
-  });
+      const normalizedQuery = query.trim().toLowerCase();
 
-  searchInput?.addEventListener("input", () => {
-    const query = searchInput.value.trim().toLowerCase();
+      if (!normalizedQuery) {
+        searchResults.innerHTML = "";
+        return;
+      }
 
-    let visible = 0;
+      const matches = articles.filter((article) => {
+        const searchableText = [
+          article.title || "",
+          article.subtitle || "",
+          article.description || "",
+        ]
+          .join(" ")
+          .toLowerCase();
 
-    articles.forEach((article) => {
-      const text = article.dataset.search?.toLowerCase() ?? "";
-      const match = !query || text.includes(query);
+        return searchableText.includes(normalizedQuery);
+      });
 
-      article.classList.toggle("hidden", !match);
+      if (matches.length === 0) {
+        searchResults.innerHTML = `
+          <div class="search-no-results">
+            Nessun articolo trovato.
+          </div>
+        `;
+        return;
+      }
 
-      if (match) visible++;
+      searchResults.innerHTML = matches
+        .map((article) => {
+          const number = String(article.number).padStart(2, "0");
+
+          const type =
+            article.type && article.type !== "articolo"
+              ? `<span class="search-result-type">${article.type}</span>`
+              : "";
+
+          const formats = Array.isArray(article.formats)
+            ? article.formats
+            : [];
+
+          const videoIcon = formats.includes("video")
+            ? `
+              <svg class="search-format-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect
+                  x="3"
+                  y="5"
+                  width="13"
+                  height="14"
+                  rx="2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M16 10l5-3v10l-5-3z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            `
+            : "";
+
+          const podcastIcon = formats.includes("podcast")
+            ? `
+              <svg class="search-format-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect
+                  x="9"
+                  y="3"
+                  width="6"
+                  height="11"
+                  rx="3"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            `
+            : "";
+
+          return `
+            <a class="search-result" href="${article.url}">
+              <span class="search-result-number">${number}</span>
+
+              <span class="search-result-title">
+                ${article.title}
+              </span>
+
+              <span class="search-result-meta">
+                ${videoIcon}
+                ${podcastIcon}
+                ${type}
+              </span>
+            </a>
+          `;
+        })
+        .join("");
+    }
+
+    searchToggle?.addEventListener("click", () => {
+      searchPanel?.classList.add("open");
+      searchPanel?.setAttribute("aria-hidden", "false");
+
+      setTimeout(() => {
+        searchInput?.focus();
+      }, 50);
     });
 
-    if (searchCount) {
-      searchCount.textContent = query
-        ? `${visible} ${visible === 1 ? "articolo trovato" : "articoli trovati"}`
-        : "";
-    }
+    searchClose?.addEventListener("click", () => {
+      searchPanel?.classList.remove("open");
+      searchPanel?.setAttribute("aria-hidden", "true");
 
-    noResults?.classList.toggle("visible", query !== "" && visible === 0);
-  });
+      if (searchInput instanceof HTMLInputElement) {
+        searchInput.value = "";
+      }
 
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      searchClose?.click();
-    }
+      if (searchResults) {
+        searchResults.innerHTML = "";
+      }
+    });
+
+    searchInput?.addEventListener("input", () => {
+      if (searchInput instanceof HTMLInputElement) {
+        renderResults(searchInput.value);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        searchClose?.click();
+      }
+    });
   });
 </script>
 
 <style>
-  :global(*) {
-    box-sizing: border-box;
-  }
-
-  :global(html) {
-    scroll-behavior: smooth;
-  }
-
-  :global(body) {
-    margin: 0;
-    background: #f8f8f5;
-    color: #17191c;
-    font-family: Arial, Helvetica, sans-serif;
-  }
-
-  :global(a) {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .site-header {
-    width: min(1180px, calc(100% - 48px));
-    margin: 0 auto;
-    padding: 30px 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #d9d9d4;
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 19px;
-    font-weight: 600;
-    letter-spacing: -0.03em;
-  }
-
-  .wave {
-    color: #2678a5;
-    font-size: 25px;
-    line-height: 1;
-    transform: rotate(-8deg);
-  }
-
-  nav {
-    display: flex;
-    align-items: center;
-    gap: 28px;
-    font-size: 14px;
-    color: #686b70;
-  }
-
-  nav a:hover,
-  nav button:hover {
-    color: #2678a5;
-  }
-
-  nav button {
-    border: 0;
-    padding: 0;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    cursor: pointer;
-  }
-
-  .search-panel {
-    max-height: 0;
-    overflow: hidden;
-    border-bottom: 0 solid #d9d9d4;
-    transition:
-      max-height 0.25s ease,
-      border-bottom-width 0.25s ease;
-  }
-
-  .search-panel.open {
-    max-height: 220px;
-    border-bottom-width: 1px;
-  }
-
-  .search-inner {
-    width: min(1180px, calc(100% - 48px));
-    margin: 0 auto;
-    padding: 25px 0 30px;
-  }
-
-  .search-inner label {
-    display: block;
-    margin-bottom: 10px;
-    color: #686b70;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .search-field {
-    display: flex;
-    align-items: center;
-    border-bottom: 2px solid #17191c;
-  }
-
-  .search-field input {
-    width: 100%;
-    border: 0;
-    outline: 0;
-    padding: 8px 0 12px;
-    background: transparent;
-    color: #17191c;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 28px;
-  }
-
-  .search-field input::placeholder {
-    color: #a0a2a5;
-  }
-
-  .search-field button {
-    border: 0;
-    background: transparent;
-    color: #686b70;
-    font-size: 27px;
-    line-height: 1;
-    cursor: pointer;
-  }
-
-  .search-count {
-    margin: 10px 0 0;
-    color: #777b80;
-    font-size: 12px;
-  }
-
   main {
     width: min(1180px, calc(100% - 48px));
     margin: 0 auto;
@@ -415,6 +398,7 @@ const articles = (await getCollection("articles")).sort(
     max-width: 760px;
     padding: 110px 0 125px;
   }
+  
 
   .eyebrow {
     margin: 0 0 25px;
@@ -486,20 +470,25 @@ const articles = (await getCollection("articles")).sort(
     max-width: 760px;
   }
 
-.article-content h2 a {
-  color: inherit;
-  text-decoration: none;
-}
+  .article-content h2 a {
+    color: inherit;
+    text-decoration: none;
+  }
 
-.article-content h2 a:hover {
-  color: #1677b8;
-}
+  .article-content h2 a:hover {
+    color: #1677b8;
+  }
 
+  h1 {
+  margin: 0;
+  font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+  font-size: clamp(38px, 5vw, 64px);
+  }
 
   h2 {
     margin: 0;
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: clamp(28px, 4vw, 48px);
+  font-family: "Roboto Condensed", Arial, Helvetica, sans-serif;
+  font-size: clamp(25px, 3.2vw, 40px);
     line-height: 1.03;
     font-weight: 400;
     letter-spacing: -0.045em;
@@ -521,20 +510,6 @@ const articles = (await getCollection("articles")).sort(
     text-transform: uppercase;
     letter-spacing: 0.08em;
   }
-
-  .article-formats {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-
-.format-icon {
-  width: 18px;
-  height: 18px;
-  color: #1677b8;
-  flex-shrink: 0;
-}
 
   .excerpt {
     max-width: 650px;
@@ -576,31 +551,9 @@ const articles = (await getCollection("articles")).sort(
     letter-spacing: -0.02em;
   }
 
-  footer {
-    width: min(1180px, calc(100% - 48px));
-    margin: 0 auto;
-    padding: 30px 0 45px;
-    border-top: 1px solid #d9d9d4;
-    display: flex;
-    justify-content: space-between;
-    color: #777b80;
-    font-size: 12px;
-  }
-
   @media (max-width: 700px) {
-    .site-header,
-    main,
-    footer,
-    .search-inner {
+    main {
       width: min(100% - 32px, 1180px);
-    }
-
-    .site-header {
-      padding: 22px 0;
-    }
-
-    nav {
-      gap: 15px;
     }
 
     .intro {
@@ -629,21 +582,12 @@ const articles = (await getCollection("articles")).sort(
       font-size: 18px;
     }
 
-    .search-field input {
-      font-size: 23px;
-    }
-
     .about {
       padding: 80px 0;
     }
 
     .about p {
       font-size: 22px;
-    }
-
-    footer {
-      flex-direction: column;
-      gap: 10px;
     }
   }
 </style>

@@ -1,8 +1,11 @@
 ---
+import "../styles/style.css";
 import { getCollection, render } from "astro:content";
+import { getSearchArticles } from "../data/search";
 
 export async function getStaticPaths() {
   const articles = await getCollection("articles");
+  const searchArticles = await getSearchArticles();
 
   return articles.map((article) => ({
     params: {
@@ -16,6 +19,8 @@ export async function getStaticPaths() {
 
 const { article } = Astro.props;
 const { Content } = await render(article);
+
+const searchArticles = await getSearchArticles();
 
 const articles = (await getCollection("articles")).sort(
   (a, b) => a.data.number - b.data.number
@@ -107,16 +112,39 @@ copyButton?.addEventListener("click", async () => {
 <body>
   <a id="top"></a>
     <header class="site-header">
-      <a class="brand" href="/">
-        <span class="mark">〰</span>
-        <span>La Deriva</span>
-      </a>
+  <a href="/" class="logo" aria-label="La Deriva, home">
+    <span class="wave" aria-hidden="true">〰</span>
+    <span>La Deriva</span>
+  </a>
 
-      <nav>
-        <a href="/">Indice</a>
-        <a href="/#chi-sono">Chi sono</a>
-      </nav>
-    </header>
+  <nav>
+    <a href="/">Indice</a>
+    <button id="search-toggle" type="button">Cerca</button>
+    <a href="/#chi-sono">Chi sono</a>
+  </nav>
+</header>
+
+<div class="search-panel" id="search-panel" aria-hidden="true">
+  <div class="search-inner">
+    <label for="search-input">Cerca negli articoli</label>
+
+    <div class="search-field">
+      <input
+        id="search-input"
+        type="search"
+        placeholder="Scrivi per cercare..."
+        autocomplete="off"
+      />
+
+      <button id="search-close" type="button" aria-label="Chiudi ricerca">
+        ×
+      </button>
+    </div>
+
+    <div class="search-results" id="search-results"></div>
+  </div>
+</div>
+<script type="application/json" id="search-data" set:html={JSON.stringify(searchArticles)}></script>
 
     <main>
       <article>
@@ -139,6 +167,11 @@ copyButton?.addEventListener("click", async () => {
             year: "numeric",
           })}
         </div>
+        {article.data.type !== "articolo" && (
+  <div class="article-type">
+    {article.data.type}
+  </div>
+)}
 
         <div class="content">
           <Content />
@@ -268,60 +301,175 @@ copyButton?.addEventListener("click", async () => {
     <footer>
       <a href="/">La Deriva</a>
     </footer>
+   <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchToggle = document.querySelector("#search-toggle");
+    const searchPanel = document.querySelector("#search-panel");
+    const searchInput = document.querySelector("#search-input");
+    const searchClose = document.querySelector("#search-close");
+    const searchResults = document.querySelector("#search-results");
+    const searchData = document.querySelector("#search-data");
+
+    let articles = [];
+
+    if (searchData) {
+      try {
+        articles = JSON.parse(searchData.textContent || "[]");
+      } catch (error) {
+        console.error("Errore nei dati della ricerca:", error);
+      }
+    }
+
+    function renderResults(query) {
+      if (!searchResults) return;
+
+      const normalizedQuery = query.trim().toLowerCase();
+
+      if (!normalizedQuery) {
+        searchResults.innerHTML = "";
+        return;
+      }
+
+      const matches = articles.filter((article) => {
+        const searchableText = [
+          article.title || "",
+          article.subtitle || "",
+          article.description || "",
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(normalizedQuery);
+      });
+
+      if (matches.length === 0) {
+        searchResults.innerHTML = `
+          <div class="search-no-results">
+            Nessun articolo trovato.
+          </div>
+        `;
+        return;
+      }
+
+      searchResults.innerHTML = matches
+        .map((article) => {
+          const number = String(article.number).padStart(2, "0");
+
+          const type =
+            article.type && article.type !== "articolo"
+              ? `<span class="search-result-type">${article.type}</span>`
+              : "";
+
+          const formats = Array.isArray(article.formats)
+            ? article.formats
+            : [];
+
+          const videoIcon = formats.includes("video")
+            ? `
+              <svg class="search-format-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect
+                  x="3"
+                  y="5"
+                  width="13"
+                  height="14"
+                  rx="2"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M16 10l5-3v10l-5-3z"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            `
+            : "";
+
+          const podcastIcon = formats.includes("podcast")
+            ? `
+              <svg class="search-format-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <rect
+                  x="9"
+                  y="3"
+                  width="6"
+                  height="11"
+                  rx="3"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                />
+                <path
+                  d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                />
+              </svg>
+            `
+            : "";
+
+          return `
+            <a class="search-result" href="${article.url}">
+              <span class="search-result-number">${number}</span>
+
+              <span class="search-result-title">
+                ${article.title}
+              </span>
+
+              <span class="search-result-meta">
+                ${videoIcon}
+                ${podcastIcon}
+                ${type}
+              </span>
+            </a>
+          `;
+        })
+        .join("");
+    }
+
+    searchToggle?.addEventListener("click", () => {
+      searchPanel?.classList.add("open");
+      searchPanel?.setAttribute("aria-hidden", "false");
+
+      setTimeout(() => {
+        searchInput?.focus();
+      }, 50);
+    });
+
+    searchClose?.addEventListener("click", () => {
+      searchPanel?.classList.remove("open");
+      searchPanel?.setAttribute("aria-hidden", "true");
+
+      if (searchInput instanceof HTMLInputElement) {
+        searchInput.value = "";
+      }
+
+      if (searchResults) {
+        searchResults.innerHTML = "";
+      }
+    });
+
+    searchInput?.addEventListener("input", () => {
+      if (searchInput instanceof HTMLInputElement) {
+        renderResults(searchInput.value);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        searchClose?.click();
+      }
+    });
+  });
+</script>
   </body>
 </html>
 
 <style>
-  * {
-    box-sizing: border-box;
-  }
-
-  body {
-    margin: 0;
-    background: #f7f4ed;
-    color: #171717;
-    font-family: Georgia, "Times New Roman", serif;
-  }
-
-  .site-header {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 28px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-family: Arial, sans-serif;
-  }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: inherit;
-    text-decoration: none;
-    font-weight: 700;
-  }
-
-  .mark {
-    color: #1677b8;
-    font-size: 26px;
-    line-height: 1;
-  }
-
-  nav {
-    display: flex;
-    gap: 22px;
-  }
-
-  nav a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  nav a:hover {
-    color: #1677b8;
-  }
-
   main {
     max-width: 760px;
     margin: 0 auto;
@@ -329,67 +477,70 @@ copyButton?.addEventListener("click", async () => {
   }
 
   article {
-    border-top: 1px solid #cfcac0;
+    border-top: 1px solid #d9d9d4;
     padding-top: 28px;
   }
 
-.content :global(img) {
+  .content :global(img) {
   display: block;
   width: 100%;
   max-width: 100%;
   height: auto;
-  margin: 32px 0;
+  margin: 45px 0;
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.07);
 }
 
-.content :global(mark) {
-  background: #dcecff;
-  color: inherit;
-  padding: 0.05em 0.15em;
-}
+  .content :global(mark) {
+    background: #dcecff;
+    color: inherit;
+    padding: 0.05em 0.15em;
+  }
 
-.content :global(.blu) {
-  color: #3b6ea8;
-}
+  .content :global(.blu) {
+    color: #3b6ea8;
+  }
 
-.content :global(details) {
-  margin: 40px 0;
-  border-top: 1px solid #d8d8d8;
-  border-bottom: 1px solid #d8d8d8;
-  padding: 18px 0;
-}
+  .content :global(details) {
+    margin: 40px 0;
+    border-top: 1px solid #d8d8d8;
+    border-bottom: 1px solid #d8d8d8;
+    padding: 18px 0;
+  }
 
-.content :global(summary) {
-  cursor: pointer;
-  color: #3b6ea8;
-  font-family: Arial, sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
+  .content :global(summary) {
+    cursor: pointer;
+    color: #3b6ea8;
+    font-family: Arial, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
 
-.content :global(details[open] summary) {
-  margin-bottom: 24px;
-}
+  .content :global(details[open] summary) {
+    margin-bottom: 24px;
+  }
 
   .article-number {
+    margin-bottom: 24px;
+    color: #1677b8;
     font-family: Arial, sans-serif;
     font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: #1677b8;
-    margin-bottom: 24px;
   }
 
   h1 {
-  margin: 0;
-  max-width: 700px;
-  font-size: clamp(2.5rem, 5vw, 4rem);
-  line-height: 1.06;
-  font-weight: 500;
-  letter-spacing: -0.045em;
-}
+    margin: 0;
+    max-width: 700px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    line-height: 1.06;
+    font-weight: 400;
+    letter-spacing: -0.045em;
+  }
 
   .subtitle {
     margin: 24px 0 0;
+    font-family: Georgia, "Times New Roman", serif;
     font-size: 1.3rem;
     line-height: 1.5;
     color: #555;
@@ -397,22 +548,23 @@ copyButton?.addEventListener("click", async () => {
 
   .date {
     margin-top: 24px;
+    color: #777;
     font-family: Arial, sans-serif;
     font-size: 0.82rem;
-    color: #777;
   }
 
   .content {
-  max-width: 680px;
-  margin-top: 64px;
-  font-size: 1.12rem;
-  line-height: 1.85;
-}
+    max-width: 680px;
+    margin-top: 64px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.12rem;
+    line-height: 1.85;
+  }
 
   .content :global(h2) {
+    margin-top: 2.5em;
     font-size: 1.8rem;
     line-height: 1.2;
-    margin-top: 2.5em;
   }
 
   .content :global(p) {
@@ -423,11 +575,21 @@ copyButton?.addEventListener("click", async () => {
     color: #1677b8;
   }
 
+  .article-type {
+    margin-top: 12px;
+    color: #2678a5;
+    font-family: Arial, sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
   .article-navigation {
-  max-width: 680px;
-  margin: 110px auto 0;
+    max-width: 680px;
+    margin: 110px auto 0;
     padding-top: 24px;
-    border-top: 1px solid #cfcac0;
+    border-top: 1px solid #d9d9d4;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
@@ -447,10 +609,10 @@ copyButton?.addEventListener("click", async () => {
   }
 
   .article-navigation span {
+    color: #777;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #777;
   }
 
   .article-navigation strong {
@@ -458,62 +620,57 @@ copyButton?.addEventListener("click", async () => {
     font-size: 1.05rem;
     font-weight: 400;
   }
+
   .share {
-  margin-top: 70px;
-  padding-top: 25px;
-  border-top: 1px solid #d9d9d4;
-}
+    margin-top: 70px;
+    padding-top: 25px;
+    border-top: 1px solid #d9d9d4;
+  }
 
-.share {
-  margin-top: 70px;
-  padding-top: 25px;
-  border-top: 1px solid #d9d9d4;
-}
+  .share-label {
+    display: block;
+    margin-bottom: 15px;
+    color: #777b80;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
 
-.share-label {
-  display: block;
-  margin-bottom: 15px;
-  color: #777b80;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+  .share-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
 
-.share-actions {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+  .share-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #2678a5;
+    cursor: pointer;
+    text-decoration: none;
+  }
 
-.share-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: #2678a5;
-  cursor: pointer;
-  text-decoration: none;
-}
+  .share-icon svg {
+    width: 20px;
+    height: 20px;
+  }
 
-.share-icon svg {
-  width: 20px;
-  height: 20px;
-}
+  .share-icon:hover {
+    color: #17191c;
+  }
 
-.share-icon:hover {
-  color: #17191c;
-}
-
-.share-message {
-  margin-left: 4px;
-  color: #777b80;
-  font-size: 12px;
-}
+  .share-message {
+    margin-left: 4px;
+    color: #777b80;
+    font-size: 12px;
+  }
 
   .next {
     text-align: right;
@@ -523,35 +680,21 @@ copyButton?.addEventListener("click", async () => {
     max-width: 900px;
     margin: 0 auto;
     padding: 30px 24px 50px;
-    border-top: 1px solid #cfcac0;
+    border-top: 1px solid #d9d9d4;
     font-family: Arial, sans-serif;
   }
 
-  footer a {
-  color: inherit;
-  text-decoration: none;
-}
+  @media (max-width: 700px) {
+    main {
+      padding: 50px 18px 70px;
+    }
 
-@media (max-width: 700px) {
-  .site-header {
-    padding: 22px 18px;
-  }
+    .article-navigation {
+      grid-template-columns: 1fr;
+    }
 
-  .site-header nav {
-    gap: 14px;
-    font-size: 0.9rem;
+    .next {
+      text-align: left;
+    }
   }
-
-  main {
-    padding: 50px 18px 70px;
-  }
-
-  .article-navigation {
-    grid-template-columns: 1fr;
-  }
-
-  .next {
-    text-align: left;
-  }
-}
 </style>
