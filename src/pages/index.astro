@@ -2,7 +2,7 @@
 import { getCollection } from "astro:content";
 
 const articles = (await getCollection("articles")).sort(
-  (a, b) => a.data.number - b.data.number
+  (a, b) => b.data.number - a.data.number
 );
 ---
 
@@ -143,7 +143,7 @@ const articles = (await getCollection("articles")).sort(
         </div>
 
         <p>
-          Sno Domenico. Scrivo poesie, racconti brevi e riflessioni sulle cose che spesso non sappiamo dire. Recensioni di libri e di film, ma molto sporadiche. Pensieri che arrivano come un lampo e che, se non li appunti subito, se ne vanno per sempre.
+          Sono Domenico. Scrivo poesie, racconti brevi e riflessioni sulle cose che spesso non sappiamo dire. Recensioni di libri e di film, ma molto sporadiche. Pensieri che arrivano come un lampo e che, se non li appunti subito, se ne vanno per sempre.
         </p>
       </section>
     </main>
@@ -438,6 +438,7 @@ const articles = (await getCollection("articles")).sort(
 .article-content h2 a:hover {
   color: #1677b8;
 }
+
 
   h2 {
     margin: 0;
