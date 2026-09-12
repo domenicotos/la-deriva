@@ -57,7 +57,8 @@ const next = articles[currentIndex + 1];
   <meta name="twitter:description" content={article.data.description} />
 </head>
 
-  <body>
+<body>
+  <a id="top"></a>
     <header class="site-header">
       <a class="brand" href="/">
         <span class="mark">〰</span>
@@ -127,11 +128,11 @@ const next = articles[currentIndex + 1];
 </html>
 
 <style>
-  :global(*) {
+  * {
     box-sizing: border-box;
   }
 
-  :global(body) {
+  body {
     margin: 0;
     background: #f7f4ed;
     color: #171717;
@@ -327,30 +328,30 @@ const next = articles[currentIndex + 1];
   }
 
   footer a {
-    color: inherit;
-    text-decoration: none;
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (max-width: 700px) {
+  .site-header {
+    padding: 22px 18px;
   }
 
-  @media (max-width: 700px) {
-    .site-header {
-      padding: 22px 18px;
-    }
-
-    .site-header nav {
-      gap: 14px;
-      font-size: 0.9rem;
-    }
-
-    main {
-      padding: 50px 18px 70px;
-    }
-
-    .article-navigation {
-      grid-template-columns: 1fr;
-    }
-
-    .next {
-      text-align: left;
-    }
+  .site-header nav {
+    gap: 14px;
+    font-size: 0.9rem;
   }
+
+  main {
+    padding: 50px 18px 70px;
+  }
+
+  .article-navigation {
+    grid-template-columns: 1fr;
+  }
+
+  .next {
+    text-align: left;
+  }
+}
 </style>
