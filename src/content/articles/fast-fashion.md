@@ -7,8 +7,6 @@ description: "Il fast fashion è ormai parte integrante del nostro modo di acqui
 formats: []
 ---
 
-# Fast Fashion: la piaga della moda
-
 La passione per gli abiti o la necessità di acquistarli passa attraverso la stessa porta: il fast fashion. Se vai ad acquistare perché ne hai bisogno o se ti ritrovi davanti ad una vetrina perché quello che vedi ti interessa, ti piace, ti attrae, non fa differenza. Una volta entrato nel 90% dei negozi che, attualmente, sono presenti sul nostro territorio, ti ritroverai a finalizzare l’acquisto di un capo che probabilmente appartiene a questa grossa fetta: il fast fashion.
 
 ![Fast fashion](https://res.cloudinary.com/lruzihj7/image/upload/v1789202707/6c034501-8e45-44af-b38f-f2f0f70a1f51_1536x1024.jpg)
