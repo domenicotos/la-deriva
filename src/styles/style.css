@@ -250,6 +250,26 @@ a:visited {
   flex-shrink: 0;
 }
 
+.social-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  margin-top: 30px;
+  font-size: 13px;
+}
+
+.social-links span {
+  color: #777b80;
+}
+
+.social-links a {
+  color: #2678a5;
+}
+
+.social-links a:hover {
+  color: #17191c;
+}
 
 /* =========================
    FOOTER
@@ -264,6 +284,19 @@ footer {
   justify-content: space-between;
   color: #777b80;
   font-size: 12px;
+}
+
+.footer-socials {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-socials a {
+  color: inherit;
+}
+
+.footer-socials a:hover {
+  color: #2678a5;
 }
 
 
