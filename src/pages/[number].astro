@@ -523,6 +523,48 @@ copyButton?.addEventListener("click", async () => {
   margin: 45px 0;
   box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.07);
 }
+.content :global(p:has(> img)) {
+  margin-bottom: 10px;
+}
+
+.content :global(p:has(> img)) + :global(p) {
+  margin-top: -30px;
+  margin-bottom: 45px;
+  color: #777b80;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.content :global(img.image-left) {
+  float: left;
+  width: 42%;
+  max-width: 42%;
+  margin: 8px 35px 20px 0;
+}
+
+.content :global(img.image-right) {
+  float: right;
+  width: 42%;
+  max-width: 42%;
+  margin: 8px 0 20px 35px;
+}
+
+.content :global(p)::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+@media (max-width: 700px) {
+  .content :global(img.image-left),
+  .content :global(img.image-right) {
+    float: none;
+    width: 100%;
+    max-width: 100%;
+    margin: 35px 0;
+  }
+}
 
   .content :global(mark) {
     background: #dcecff;
